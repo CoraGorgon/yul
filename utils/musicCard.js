@@ -55,7 +55,7 @@ function formatDuration(ms) {
 class EnhancedMusicCard {
     async generateCard(options) {
         const config = {
-            width: 900, height: 300,
+            width: 600, height: 200,
             thumbnailURL: options.thumbnailURL || "",
             trackURI: options.trackURI || options.thumbnailURL || "",
             songTitle: options.songTitle || "Unknown",
