@@ -103,6 +103,61 @@ initializePlayer(client).catch(error => {
     console.error(`${colors.cyan}[ LAVALINK ]${colors.reset} ${colors.red}${lang.console?.bot?.lavalinkError?.replace('{message}', error.message) || `Error initializing player: ${error.message}`}${colors.reset}`);
 });
 
+
+
+
+
+
+
+/////////////////bienvenidas y despedidas
+
+client.on("guildMemberAdd", async (member) => {
+    if (member.guild.id === '900901034338185247') {
+        try {
+            const channel = await client.channels.fetch("900906345488867378");
+            if (channel) {
+                await channel.send({ 
+                    content: `⭐ Denle una buena bienvenida a ${member.user} <a:3516scubbacat:1518088973845532862>` 
+                });
+            }
+        } catch (err) {
+            console.error("No pude encontrar el canal de bienvenida:", err);
+        }
+    }
+});
+
+client.on("guildMemberRemove", async (member) => {
+    // Verifica que sea el servidor correcto
+    if (member.guild.id === '900901034338185247') {
+        
+        // Define el canal donde quieres enviar la despedida
+        const channelID = "900906366099681291";
+
+        try {
+            const channel = await client.channels.fetch(channelID);
+            if (channel) {
+                await channel.send({ 
+                    content: `👋 **${member.user.tag}** se ha ido del servidor. ¡Te extrañaremos! <a:3516scubbacat:1518088973845532862>` 
+                });
+            }
+        } catch (err) {
+            console.error("No pude enviar el mensaje de despedida:", err);
+        }
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+////////bienvenidas y despedidas
 client.on("clientReady", () => {
     const lang = getLangSync();
     console.log(`${colors.cyan}[ SYSTEM ]${colors.reset} ${colors.green}${lang.console?.bot?.clientLogged?.replace('{tag}', client.user.tag) || `Client logged as ${client.user.tag}`}${colors.reset}`);
