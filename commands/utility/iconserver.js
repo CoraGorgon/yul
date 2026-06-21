@@ -25,7 +25,7 @@ await safeDeferReply(interaction);
           new ButtonBuilder()
             .setLabel("Support Server")
             .setStyle(ButtonStyle.Link)
-            .setURL(`https://discord.gg/mEVYwC62d8`)
+            .setURL(`https://discord.gg/Ze5TEDCD`)
             .setEmoji("<:Kawaii_Moon_and_Stars:935305070852050965>")
         );
 

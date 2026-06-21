@@ -335,6 +335,13 @@ connectToDatabase().then(() => {
 const express = require("express");
 const app = express();
 const port = 3000;
+app.get('/api/stats', (req, res) => {
+    res.json({
+        guilds: client.guilds.cache.size,
+        users: client.guilds.cache.reduce((a, b) => a + b.memberCount, 0)
+    });
+});
+
 app.get('/', (req, res) => {
     const imagePath = path.join(__dirname, 'index.html');
     res.sendFile(imagePath);

@@ -52,7 +52,7 @@ module.exports = {
             const deferred = await safeDeferReply(interaction);
             if (!deferred && !interaction.deferred && !interaction.replied) return;
 
-            const supportServerLink = "https://discord.gg/xQF9f9yUEM";
+            const supportServerLink = "https://discord.gg/Ze5TEDCD";
             const githubLink = "https://github.com/GlaceYT";
             const websiteLink = "https://www.glaceyt.com";
             const youtubeLink = "https://www.youtube.com/@GlaceYT";
