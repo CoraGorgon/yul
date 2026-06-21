@@ -119,42 +119,33 @@ const args = message.content.slice(6).trim();
         }
      
 
-const args = message.content.slice(10).trim();
-    // El formato esperado: id;1231321, Texto, imagen:opcion
-    const [idPart, ...rest] = args.split(',');
-    const messageId = idPart.replace('id;', '').trim();
+if (!message.reference) return message.reply("Responde al embed que quieres editar.");
+    
+    const replyMessage = await message.channel.messages.fetch(message.reference.messageId);
+    if (!replyMessage.embeds[0]) return message.reply("Ese mensaje no tiene un embed.");
 
-    try {
-        const targetMessage = await message.channel.messages.fetch(messageId);
-        if (!targetMessage.embeds[0]) return message.reply("Ese mensaje no tiene un embed.");
-        
-        const embed = EmbedBuilder.from(targetMessage.embeds[0]);
-        const content = rest.join(',').trim();
+    const args = message.content.slice(10).trim();
+    const embed = EmbedBuilder.from(replyMessage.embeds[0]);
 
-        // Separamos texto de comando de imagen
-        const parts = content.split('imagen:');
-        const nuevoTexto = parts[0].trim();
-        const imgOp = parts[1] ? parts[1].trim() : null;
+    // Separamos: !embededit nuevo texto imagen:opcion
+    const parts = args.split('imagen:');
+    if (parts[0].trim()) embed.setDescription(parts[0].trim().replace(/\\n/g, '\n'));
 
-        // Actualizar texto si hay contenido antes de 'imagen:'
-        if (nuevoTexto) embed.setDescription(nuevoTexto.replace(/\\n/g, '\n'));
-
-        // Lógica de imagen
-        if (imgOp) {
-            if (imgOp === 'false') {
-                embed.setImage(null);
-            } else if (imgOp.startsWith('change:')) {
-                const newUrl = imgOp.split('change:')[1].replace(/[<>]/g, ''); // Limpiar si viene con < >
-                if (newUrl.startsWith('http')) embed.setImage(newUrl);
-            }
-            // Si es 'true', no hacemos nada, mantiene la que tiene
+    // Lógica de imagen
+    const imgOp = parts[1] ? parts[1].trim() : null;
+    if (imgOp) {
+        if (imgOp === 'false') {
+            embed.setImage(null);
+        } else if (imgOp === 'true') {
+            // Mantiene la que tiene
+        } else if (imgOp.startsWith('change:')) {
+            const newUrl = imgOp.split('change:')[1];
+            if (newUrl.startsWith('http')) embed.setImage(newUrl);
         }
-
-        await targetMessage.edit({ embeds: [embed] });
-        message.delete().catch(() => {});
-    } catch (e) {
-        message.reply("No pude encontrar ese mensaje. ¿El ID es correcto y está en este canal?");
     }
+
+    await replyMessage.edit({ embeds: [embed] });
+    message.delete().catch(() => {});
     }
 });
 
