@@ -15,6 +15,26 @@ const { getLang } = require('../../utils/languageLoader');
 const { getEmoji, getButtonEmoji } = require('../../UI/emojis/emoji');
 const { safeDeferReply, stripLeadingIcons, handleCommandError } = require('../../utils/responseHandler');
 
+// 1. OBTENER CATEGORÍAS DINÁMICAMENTE DESDE LAS CARPETAS
+const commandsDir = path.resolve(__dirname, '../../commands');
+let dynamicChoices = [{ name: "🏠 Main Menu", value: "main" }];
+
+function getAvailableCategories() {
+  if (!fs.existsSync(commandsDir)) return ['basic'];
+  return fs.readdirSync(commandsDir, { withFileTypes: true })
+    .filter(dirent => dirent.isDirectory())
+    .map(dirent => dirent.name);
+}
+
+const availableFolders = getAvailableCategories();
+availableFolders.forEach(folder => {
+  const title = folder.charAt(0).toUpperCase() + folder.slice(1);
+  // Añadimos las opciones dinámicas, limitadas a un total de 25 por los límites de Discord
+  if (dynamicChoices.length < 25) {
+    dynamicChoices.push({ name: `📁 ${title} Commands`, value: folder });
+  }
+});
+
 const data = new SlashCommandBuilder()
   .setName("help")
   .setDescription("Get information about the bot and its commands")
@@ -22,23 +42,15 @@ const data = new SlashCommandBuilder()
     option.setName("category")
       .setDescription("Select a category to view")
       .setRequired(false)
-      .addChoices(
-        { name: "🏠 Main Menu", value: "main" },
-        { name: "🎵 Music Commands", value: "music" },
-        { name: "📋 Playlist Commands", value: "playlist" },
-        { name: "💜 Basic Commands", value: "basic" },
-        { name: "🔧 Utility Commands", value: "utility" }
-      )
+      .addChoices(...dynamicChoices)
   );
 
-    const COMMAND_MENTION_CACHE_TTL_MS = 5 * 60 * 1000;
-    const commandMentionCache = new Map();
+const COMMAND_MENTION_CACHE_TTL_MS = 5 * 60 * 1000;
+const commandMentionCache = new Map();
 
+// Función adaptada para leer dinámicamente
 function getCommandCategory(commandName) {
-  const commandsDir = path.resolve(__dirname, '../../commands');
-  const categoryFolders = ['basic', 'music', 'playlist', 'utility'];
-  
-  for (const folder of categoryFolders) {
+  for (const folder of availableFolders) {
     const folderPath = path.join(commandsDir, folder);
     if (fs.existsSync(folderPath)) {
       const files = fs.readdirSync(folderPath);
@@ -47,23 +59,19 @@ function getCommandCategory(commandName) {
       }
     }
   }
-  
   return 'basic';
 }
 
 function groupCommandsByCategory(client) {
-  const grouped = {
-    music: [],
-    playlist: [],
-    basic: [],
-    utility: []
-  };
+  const grouped = {};
+  availableFolders.forEach(cat => grouped[cat] = []);
   
   client.commands.forEach((cmd, name) => {
     const category = getCommandCategory(name);
     if (grouped[category]) {
       grouped[category].push(cmd);
     } else {
+      if (!grouped.basic) grouped.basic = [];
       grouped.basic.push(cmd);
     }
   });
@@ -147,18 +155,23 @@ async function getCommandMentionMap(client, interaction) {
 
 function getCategoryMeta(lang, categoryKey) {
   const fallback = {
-    music: { name: 'Music Commands', description: 'Control music playback and settings' },
-    playlist: { name: 'Playlist Commands', description: 'Manage your playlists' },
-    basic: { name: 'Basic Commands', description: 'General bot information and utilities' },
-    utility: { name: 'Utility Commands', description: 'Additional utility features' }
+    music: { name: 'Music Commands', description: 'Control music playback and settings', emoji: '🎵' },
+    playlist: { name: 'Playlist Commands', description: 'Manage your playlists', emoji: '📋' },
+    basic: { name: 'Basic Commands', description: 'General bot information and utilities', emoji: '💜' },
+    utility: { name: 'Utility Commands', description: 'Additional utility features', emoji: '🔧' }
   };
 
   const langCategory = lang?.help?.categories?.[categoryKey] || {};
-  const fallbackCategory = fallback[categoryKey] || fallback.basic;
+  const fallbackCategory = fallback[categoryKey] || {
+    name: categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1) + ' Commands',
+    description: `Commands for ${categoryKey}`,
+    emoji: '📁'
+  };
 
   return {
     name: langCategory.name || fallbackCategory.name,
-    description: langCategory.description || fallbackCategory.description
+    description: langCategory.description || fallbackCategory.description,
+    emoji: langCategory.emoji || fallbackCategory.emoji
   };
 }
 
@@ -175,15 +188,32 @@ function createNavigationButton(label, customId, emojiKey, style, disabled = fal
   return button;
 }
 
-function buildTabsRow(activeKey) {
-  const styleFor = (key) => activeKey === key ? ButtonStyle.Danger : ButtonStyle.Secondary;
+// 2. NUEVO SELECT MENU DE CATEGORÍAS (Reemplaza los botones de Tabs)
+function buildCategorySelect(activeKey) {
+  const options = [
+    {
+      label: '🏠 Main Menu',
+      description: 'Return to the overview',
+      value: 'main',
+      default: activeKey === 'main' || activeKey === 'overview'
+    }
+  ];
+
+  availableFolders.forEach(cat => {
+    const meta = getCategoryMeta({}, cat);
+    options.push({
+      label: `${meta.emoji || '📁'} ${meta.name}`,
+      description: `View ${meta.name} commands`,
+      value: cat,
+      default: activeKey === cat
+    });
+  });
 
   return new ActionRowBuilder().addComponents(
-    createNavigationButton('Overview', 'help_tab_overview', 'home', styleFor('overview')),
-    createNavigationButton('Music', 'help_tab_music', 'music', styleFor('music')),
-    createNavigationButton('Playlist', 'help_tab_playlist', 'playlist', styleFor('playlist')),
-    createNavigationButton('Basic', 'help_tab_basic', 'basic', styleFor('basic')),
-    createNavigationButton('Utility', 'help_tab_utility', 'utility', styleFor('utility'))
+    new StringSelectMenuBuilder()
+      .setCustomId('help_category_select')
+      .setPlaceholder('Select a category to explore...')
+      .addOptions(options.slice(0, 25))
   );
 }
 
@@ -244,7 +274,6 @@ function buildHelpBanner() {
   if (!bannerUrl) return null;
 
   try {
-    // Validate URL once to avoid API errors from malformed config values.
     new URL(bannerUrl);
   } catch (_) {
     return null;
@@ -273,18 +302,19 @@ function buildRotatingCommandHint(commandMentionMap) {
 }
 
 function buildMainBody(client, lang, groupedCommands, commandMentionMap) {
-  const botName = client.user?.username || 'Prime Music';
   const totalCommands = client.commands.size;
   const totalServers = client.guilds.cache.size;
   const totalUsers = client.guilds.cache.reduce((acc, guild) => acc + (guild.memberCount || 0), 0);
   const uptime = formatUptime(process.uptime());
   const ping = client.ws.ping;
-
-  const musicMeta = getCategoryMeta(lang, 'music');
-  const playlistMeta = getCategoryMeta(lang, 'playlist');
-  const basicMeta = getCategoryMeta(lang, 'basic');
-  const utilityMeta = getCategoryMeta(lang, 'utility');
   const pingStatus = getPingStatus(ping);
+
+  // Construcción dinámica de la vista de categorías
+  const categoriesList = availableFolders.map(cat => {
+    const meta = getCategoryMeta(lang, cat);
+    const count = groupedCommands[cat] ? groupedCommands[cat].length : 0;
+    return `• ${meta.emoji || '📁'} ${meta.name}: **${count}**`;
+  }).join('\n');
 
   return [
     [
@@ -296,18 +326,20 @@ function buildMainBody(client, lang, groupedCommands, commandMentionMap) {
       `• Ping: **${ping}ms** (${pingStatus})`
     ].join('\n'),
     [
+      `### 🎵 Créditos`,
+      `• Creador de la Música: **GlaceYT**`
+    ].join('\n'), // 3. AÑADIDO: Créditos a GlaceYT
+    [
       `### ${getEmoji('folder')} Categories`,
-      `• ${getEmoji('music')} ${musicMeta.name}: **${groupedCommands.music.length}**`,
-      `• ${getEmoji('playlist')} ${playlistMeta.name}: **${groupedCommands.playlist.length}**`,
-      `• ${getEmoji('basic')} ${basicMeta.name}: **${groupedCommands.basic.length}**`,
-      `• ${getEmoji('utility')} ${utilityMeta.name}: **${groupedCommands.utility.length}**`
+      categoriesList
     ].join('\n'),
-    `${getEmoji('home')} Select a tab below to view commands.`,
+    `${getEmoji('home')} Select a category below to view commands.`,
     buildRotatingCommandHint(commandMentionMap)
   ];
 }
 
-function getCategorySections(categoryKey) {
+// 4. PREPARADO PARA CATEGORÍAS DESCONOCIDAS
+function getCategorySections(categoryKey, commands = []) {
   const map = {
     music: [
       { title: 'Playback', keys: ['play', 'search', 'pause', 'resume', 'skip', 'stop', 'seek', 'volume', 'np', 'trackinfo', 'voteskip'] },
@@ -328,11 +360,16 @@ function getCategorySections(categoryKey) {
     ]
   };
 
-  return map[categoryKey] || [];
+  if (map[categoryKey]) return map[categoryKey];
+
+  // Si creas una carpeta nueva (ej. 'moderacion'), se agrupará aquí automáticamente
+  return [
+    { title: 'General', keys: commands.map(cmd => cmd.data.name) }
+  ];
 }
 
 function renderCategoryTree(categoryKey, commands, commandMentionMap) {
-  const sections = getCategorySections(categoryKey);
+  const sections = getCategorySections(categoryKey, commands);
   const commandMap = new Map(commands.map((cmd) => [cmd.data.name, cmd]));
   const consumed = new Set();
   const lines = [];
@@ -369,7 +406,7 @@ function buildCategoryBody(lang, groupedCommands, categoryKey, commandMentionMap
 
   return [
     `${categoryMeta.description}`,
-    `### ${getEmoji('folder')} Commands\n${tree}`,
+    `### ${categoryMeta.emoji || getEmoji('folder')} Commands\n${tree}`,
     `${getEmoji('search')} Select a command below to view details.`
   ];
 }
@@ -385,7 +422,7 @@ function buildCommandDetailsBody(lang, categoryKey, command, commandMentionMap) 
   return [
     `${getEmoji('commands')} **/${json.name}**\n${json.description || 'No description available.'}`,
     [
-      `### ${getEmoji(categoryKey)} Category`,
+      `### ${categoryMeta.emoji || '📁'} Category`,
       `• ${categoryMeta.name}`,
       `• Run: ${commandRef}`
     ].join('\n'),
@@ -426,7 +463,7 @@ async function showMainMenu(client, interaction) {
   const card = buildCard(
     `${getEmoji('help')} ${client.user?.username || 'Prime Music'} Help Section`,
     buildMainBody(client, lang, groupedCommands, commandMentionMap),
-    [buildTabsRow('overview')],
+    [buildCategorySelect('main')],
     banner
   );
 
@@ -438,16 +475,19 @@ async function showCategoryPage(client, interaction, categoryKey) {
   const groupedCommands = groupCommandsByCategory(client);
   const commandMentionMap = await getCommandMentionMap(client, interaction);
   const banner = buildHelpBanner();
-  const safeCategory = ['music', 'playlist', 'basic', 'utility'].includes(categoryKey) ? categoryKey : 'basic';
+  
+  const safeCategory = availableFolders.includes(categoryKey) ? categoryKey : 'basic';
   const categoryCommands = [...(groupedCommands[safeCategory] || [])].sort((a, b) => a.data.name.localeCompare(b.data.name));
-  const actionRows = [buildTabsRow(safeCategory)];
+  
+  const actionRows = [buildCategorySelect(safeCategory)];
   if (categoryCommands.length) {
     actionRows.push(buildCommandSelect(safeCategory, categoryCommands));
   }
   actionRows.push(buildControlsRow('help_back_overview'));
 
+  const meta = getCategoryMeta(lang, safeCategory);
   const card = buildCard(
-    `${getEmoji(safeCategory)} ${getCategoryMeta(lang, safeCategory).name}`,
+    `${meta.emoji || '📁'} ${meta.name}`,
     buildCategoryBody(lang, groupedCommands, safeCategory, commandMentionMap),
     actionRows,
     banner
@@ -461,7 +501,8 @@ async function showCommandDetails(client, interaction, categoryKey, commandName)
   const groupedCommands = groupCommandsByCategory(client);
   const commandMentionMap = await getCommandMentionMap(client, interaction);
   const banner = buildHelpBanner();
-  const safeCategory = ['music', 'playlist', 'basic', 'utility'].includes(categoryKey) ? categoryKey : 'basic';
+  
+  const safeCategory = availableFolders.includes(categoryKey) ? categoryKey : 'basic';
   const categoryCommands = [...(groupedCommands[safeCategory] || [])].sort((a, b) => a.data.name.localeCompare(b.data.name));
   const command = categoryCommands.find((cmd) => cmd.data.name === commandName);
 
@@ -470,7 +511,7 @@ async function showCommandDetails(client, interaction, categoryKey, commandName)
   }
 
   const actionRows = [
-    buildTabsRow(safeCategory),
+    buildCategorySelect(safeCategory),
     buildCommandSelect(safeCategory, categoryCommands),
     buildControlsRow(`help_back_cat_${safeCategory}`)
   ];
@@ -518,16 +559,6 @@ async function handleComponent(client, interaction) {
 
   if (customId.startsWith('help_back_cat_')) {
     const category = customId.replace('help_back_cat_', '');
-    return showCategoryPage(client, interaction, category);
-  }
-
-  if (customId.startsWith('help_tab_')) {
-    const tab = customId.replace('help_tab_', '');
-    return renderFromSelection(client, interaction, tab);
-  }
-
-  if (customId.startsWith('help_cat_')) {
-    const category = customId.replace('help_cat_', '');
     return showCategoryPage(client, interaction, category);
   }
 

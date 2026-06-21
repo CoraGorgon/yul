@@ -16,7 +16,41 @@ const client = new Client({
 });
 
 client.config = config;
+client.on('messageCreate', async (message) => {
+    // 1. Definir tu ID de usuario (cámbialo por el tuyo)
+    const OWNER_ID = '482441540346839040'; 
+    const prefix = '!';
 
+    // 2. Validaciones básicas
+    if (message.author.bot || !message.content.startsWith(prefix)) return;
+
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const command = args.shift().toLowerCase();
+
+    // 3. Lógica del comando !say
+    if (command === 'say') {
+        // Verifica si eres tú quien ejecuta el comando
+        if (message.author.id !== OWNER_ID) {
+            return message.reply("❌ No tienes permiso para usar este comando.");
+        }
+
+        // Obtiene el texto que quieres que el bot diga
+        const textToSay = args.join(' ');
+        
+        if (!textToSay) {
+            return message.reply("⚠️ Debes escribir algo para que yo lo diga.");
+        }
+
+        // El bot envía el mensaje y borra el tuyo (opcional)
+        try {
+            await message.channel.send(textToSay);
+            // message.delete().catch(err => console.error("No pude borrar el mensaje original"));
+        } catch (error) {
+            console.error(error);
+            message.reply("Hubo un error al intentar enviar el mensaje.");
+        }
+    }
+});
 
 process.on('unhandledRejection', (error) => {
     const lang = getLangSync();
