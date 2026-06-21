@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, EmbedBuilder, Events } = require("discord.js");
 const config = require("./config.js");
 const fs = require("fs");
 const path = require('path');
@@ -147,6 +147,55 @@ client.on("guildMemberRemove", async (member) => {
 });
 
 
+// ID del canal de logs
+const LOG_CHANNEL_ID = "1016113586248110180";
+
+// 1. Aviso de cuando el bot prende
+client.once(Events.ClientReady, async (c) => {
+    const channel = await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
+    
+    if (channel) {
+        const embed = new EmbedBuilder()
+            .setTitle("🚀 Sistema Operativo: ONLINE")
+            .setColor("#00ff6a") // Verde neón elegante
+            .setDescription(`El nodo **${c.user.username}** ha sido inicializado con éxito.`)
+            .addFields(
+                { name: "📡 Latencia", value: `> ${client.ws.ping}ms`, inline: true },
+                { name: "👥 Servidores", value: `> ${client.guilds.cache.size}`, inline: true },
+                { name: "🕒 Tiempo de actividad", value: `> Iniciado ahora`, inline: true }
+            )
+            .setThumbnail(c.user.displayAvatarURL())
+            .setFooter({ text: "Estado del Sistema: Estable" })
+            .setTimestamp();
+        
+        channel.send({ embeds: [embed] });
+    }
+    console.log(`Bot conectado como ${c.user.tag}`);
+});
+
+// 2. Aviso de cuando el bot se apaga
+const shutdown = async () => {
+    const channel = await client.channels.fetch(LOG_CHANNEL_ID).catch(() => null);
+    
+    if (channel) {
+        const embed = new EmbedBuilder()
+            .setTitle("⚠️ Sistema Operativo: OFFLINE")
+            .setColor("#ff3333") // Rojo peligroso
+            .setDescription("Se ha detectado una señal de cierre. El sistema entrará en modo de mantenimiento o apagado.")
+            .addFields(
+                { name: "Estado", value: "> Desconectando...", inline: true },
+                { name: "Razón", value: "> Reinicio programado / Terminar proceso", inline: true }
+            )
+            .setTimestamp();
+        
+        // Enviamos y esperamos 1 segundo para asegurar la entrega
+        await channel.send({ embeds: [embed] });
+    }
+    process.exit();
+};
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 
 
