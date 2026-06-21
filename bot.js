@@ -93,39 +93,74 @@ client.on('messageCreate', async (message) => {
         }
      
 
-const rawContent = message.content.slice(6).trim();
-    
-    // 1. Separamos el contenido buscando la palabra "imagen:"
-    let descripcion = rawContent;
-    let imagenUrl = null;
-
-    if (rawContent.includes('imagen:')) {
-        const parts = rawContent.split('imagen:');
-        descripcion = parts[0].trim();
-        // Tomamos la URL hasta el primer espacio o final del mensaje
-        imagenUrl = parts[1].trim().split(' ')[0]; 
-    }
-
-    // 2. Reemplazamos los \n manuales por saltos de línea reales
-    const finalDesc = descripcion.replace(/\\n/g, '\n');
+const args = message.content.slice(6).trim();
+    // Separamos descripción e imagen usando 'image:'
+    const parts = args.split('image:');
+    const descripcion = parts[0].trim().replace(/\\n/g, '\n');
+    const imagenUrl = parts[1] ? parts[1].trim() : null;
 
     const embed = new EmbedBuilder()
         .setColor('#000000')
-        .setTitle('『 🤖 』 Yul DS | System')
-        .setDescription(finalDesc)
+        .setTitle('『 <:miwa:1518385029653205103> 』 Yul')
+        .setDescription(descripcion)
         .setThumbnail(message.client.user.displayAvatarURL())
         .setTimestamp();
 
-    // 3. Solo asignamos la imagen SI existe una URL válida
-    if (imagenUrl && imagenUrl.startsWith('http')) {
-        embed.setImage(imagenUrl);
-    }
+    if (imagenUrl && imagenUrl.startsWith('http')) embed.setImage(imagenUrl);
 
     message.channel.send({ embeds: [embed] });
     message.delete().catch(() => {});
+    }
 
+     if (command === 'embededit') {
+        // Verifica si eres tú quien ejecuta el comando
+        if (message.author.id !== OWNER_ID) {
+            return message.reply("❌ No tienes permiso para usar este comando.");
+        }
+     
+
+const args = message.content.slice(10).trim();
+    // El formato esperado: id;1231321, Texto, imagen:opcion
+    const [idPart, ...rest] = args.split(',');
+    const messageId = idPart.replace('id;', '').trim();
+
+    try {
+        const targetMessage = await message.channel.messages.fetch(messageId);
+        if (!targetMessage.embeds[0]) return message.reply("Ese mensaje no tiene un embed.");
+        
+        const embed = EmbedBuilder.from(targetMessage.embeds[0]);
+        const content = rest.join(',').trim();
+
+        // Separamos texto de comando de imagen
+        const parts = content.split('imagen:');
+        const nuevoTexto = parts[0].trim();
+        const imgOp = parts[1] ? parts[1].trim() : null;
+
+        // Actualizar texto si hay contenido antes de 'imagen:'
+        if (nuevoTexto) embed.setDescription(nuevoTexto.replace(/\\n/g, '\n'));
+
+        // Lógica de imagen
+        if (imgOp) {
+            if (imgOp === 'false') {
+                embed.setImage(null);
+            } else if (imgOp.startsWith('change:')) {
+                const newUrl = imgOp.split('change:')[1].replace(/[<>]/g, ''); // Limpiar si viene con < >
+                if (newUrl.startsWith('http')) embed.setImage(newUrl);
+            }
+            // Si es 'true', no hacemos nada, mantiene la que tiene
+        }
+
+        await targetMessage.edit({ embeds: [embed] });
+        message.delete().catch(() => {});
+    } catch (e) {
+        message.reply("No pude encontrar ese mensaje. ¿El ID es correcto y está en este canal?");
+    }
     }
 });
+
+
+
+
 // owner mensasage
 
 
