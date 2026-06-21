@@ -7,13 +7,14 @@ module.exports = {
     .setDescription('Create a professional poll with a visual progress bar.')
     .addStringOption(option => option.setName('question').setDescription('The poll question').setRequired(true))
         .addStringOption(option => option.setName('options').setDescription('Options separated by comma (max 5)').setRequired(true))
-        .addIntegerOption(option => option.setName('amount').setDescription('Time amount').setRequired(true))
         .addStringOption(option => option.setName('unit').setDescription('Time unit')
             .addChoices(
                 { name: 'Seconds', value: 'seconds' },
                 { name: 'Minutes', value: 'minutes' },
                 { name: 'Hours', value: 'hours' }
-            ).setRequired(true)),
+            ).setRequired(true))
+        .addIntegerOption(option => option.setName('amount').setDescription('Time amount').setRequired(true)),
+
   run: async (client, interaction) => {
     try {
       
