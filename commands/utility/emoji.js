@@ -1,103 +1,72 @@
-const { SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
-const { REDWHITE_CUSTOMS } = require('../../UI/emojis/emojiData');
-
-const data = new SlashCommandBuilder()
-  .setName('emoji')
-  .setDescription('Export emoji IDs for the bot theme map')
-  .addBooleanOption((option) =>
-    option
-      .setName('all')
-      .setDescription('Include all server emojis in the export output')
-      .setRequired(false)
-  );
-
-function buildRequiredExport(guildEmojis) {
-  const lines = [];
-  const missing = [];
-  let matchedCount = 0;
-
-  for (const [key, spec] of Object.entries(REDWHITE_CUSTOMS)) {
-    const emoji = guildEmojis.find((e) => e.name === spec.name);
-    const id = emoji?.id || '';
-
-    if (id) matchedCount += 1;
-    else missing.push(spec.name);
-
-    lines.push(`    ${key}: { name: "${spec.name}", id: "${id}" },`);
-  }
-
-  const exportBlock = [
-    'const REDWHITE_CUSTOMS = Object.freeze({',
-    ...lines,
-    '});'
-  ].join('\n');
-
-  return {
-    exportBlock,
-    missing,
-    matchedCount,
-    total: Object.keys(REDWHITE_CUSTOMS).length
-  };
-}
-
-function buildAllEmojiList(guildEmojis) {
-  return [...guildEmojis.values()]
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((emoji) => `${emoji.name}: ${emoji.id}`)
-    .join('\n');
-}
-
-async function sendExport(interaction, content) {
-  if (content.length <= 1800) {
-    return interaction.editReply({ content });
-  }
-
-  const file = new AttachmentBuilder(Buffer.from(content, 'utf8'), {
-    name: 'emoji-export.txt'
-  });
-
-  return interaction.editReply({
-    content: 'Export is large, sent as file: emoji-export.txt',
-    files: [file]
-  });
-}
+const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } = require('discord.js');
+const { safeDeferReply, handleCommandError } = require('../../utils/responseHandler');
 
 module.exports = {
-  data,
-  run: async (_client, interaction) => {
-    await interaction.deferReply({ ephemeral: true });
+  data: new SlashCommandBuilder()
+    .setName('emoji')
+    .setDescription('show all emojis for the server'),
 
-    if (!interaction.guild) {
-      return interaction.editReply({ content: 'This command can only be used in a server.' });
+  run: async (client, interaction) => {
+    try {
+      await interaction.deferReply();
+
+        const guild = interaction.guild;
+        let Emojis = "";
+        let EmojisAnimated = "";
+        let EmojiCount = 0;
+        let Animated = 0;
+        let OverallEmojis = 0;
+
+        guild.emojis.cache.forEach((emoji) => {
+            OverallEmojis++;
+            if (emoji.animated) {
+                Animated++;
+                EmojisAnimated += emoji.toString();
+            } else {
+                EmojiCount++;
+                Emojis += emoji.toString();
+            }
+        });
+
+        // Construcción del Embed
+        const embed = new EmbedBuilder()
+            .setColor('#000000') // Color negro
+            .setTitle(`Emojis de ${guild.name} | [${OverallEmojis}]`)
+            .setDescription(
+                `**Animados [${Animated}]:**\n${EmojisAnimated || 'Ninguno'}\n\n` +
+                `**No Animados [${EmojiCount}]:**\n${Emojis || 'Ninguno'}`
+            )
+            .setTimestamp()
+            .setFooter({ text: 'Yul DS // Sistema de Emojis' });
+
+        // Validación de límite de caracteres de Discord (4096)
+        if (embed.data.description.length > 4096) {
+            return await interaction.editReply("❌ El servidor tiene demasiados emojis para mostrarlos en un solo mensaje.");
+        }
+
+        // Botones de acción
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+                .setLabel("Invite")
+                .setStyle(ButtonStyle.Link)
+                .setURL("https://discord.com/api/oauth2/authorize?client_id=1517975340549410816&permissions=281474980153408&integration_type=0&scope=bot")
+                .setEmoji("935305026048495638"),
+            new ButtonBuilder()
+                .setLabel("Support Server")
+                .setStyle(ButtonStyle.Link)
+                .setURL("https://discord.gg/Ze5TEDCD")
+                .setEmoji("935305070852050965")
+        );
+
+        await interaction.editReply({ embeds: [embed], components: [row] });
+
+    } catch (e) {
+      return handleCommandError(
+        interaction,
+        e,
+        'Error',
+        `<a:3516scubbacat:1518088973845532862> \`|\` Hubo un error!! ${e}`
+      );
     }
-
-    const includeAll = interaction.options.getBoolean('all') || false;
-    const guildEmojis = await interaction.guild.emojis.fetch();
-    const required = buildRequiredExport(guildEmojis);
-
-    const missingText = required.missing.length
-      ? required.missing.join(', ')
-      : 'None';
-
-    const sections = [
-      `Emoji export completed`,
-      `Matched: ${required.matchedCount}/${required.total}`,
-      `Missing: ${missingText}`,
-      '',
-      'Paste this into UI/emojis/emojiData.js:',
-      '```js',
-      required.exportBlock,
-      '```'
-    ];
-
-    if (includeAll) {
-      sections.push('');
-      sections.push('All server emojis:');
-      sections.push('```txt');
-      sections.push(buildAllEmojiList(guildEmojis));
-      sections.push('```');
-    }
-
-    return sendExport(interaction, sections.join('\n'));
-  }
+  },
 };
