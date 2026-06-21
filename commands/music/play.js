@@ -30,7 +30,6 @@ const data = new SlashCommandBuilder()
     option.setName("name")
       .setDescription("Enter song name / link or playlist")
       .setRequired(true)
-      .setAutocomplete(true)
   );
 
 const spotifyApi = new SpotifyWebApi({
@@ -83,45 +82,6 @@ module.exports = {
     data: data,
     run: async (client, interaction) => {
         try {
-            // Handle autocomplete
-            if (interaction.isAutocomplete()) {
-                const focusedOption = interaction.options.getFocused(true);
-                if (focusedOption.name === 'name') {
-                    const query = focusedOption.value;
-                    if (query.length < 2) {
-                        return interaction.respond([]);
-                    }
-
-                    try {
-                        const nodeManager = getLavalinkManager();
-                        if (!nodeManager) {
-                            return interaction.respond([]);
-                        }
-
-                        await nodeManager.ensureNodeAvailable();
-                        const resolve = await client.riffy.resolve({ query, requester: interaction.user.username });
-
-                        if (resolve && resolve.tracks && resolve.tracks.length > 0) {
-                            const choices = resolve.tracks.slice(0, 25).map(track => {
-                                const info = track.info;
-                                const duration = formatDuration(info.length);
-                                const display = `${info.title} - ${info.author} (${duration})`;
-                                return {
-                                    name: display.length > 100 ? display.substring(0, 97) + '...' : display,
-                                    value: info.uri || query
-                                };
-                            });
-                            return interaction.respond(choices);
-                        } else {
-                            return interaction.respond([]);
-                        }
-                    } catch (error) {
-                        console.error('Autocomplete error:', error);
-                        return interaction.respond([]);
-                    }
-                }
-            }
-
             const lang = await getLang(interaction.guildId);
             const t = lang.music.play;
 

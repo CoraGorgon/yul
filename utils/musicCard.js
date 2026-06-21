@@ -78,7 +78,6 @@ class EnhancedMusicCard {
     drawMainCard(ctx, config) {
         const cardX = 20, cardY = 20, cardW = config.width - 40, cardH = config.height - 40;
         
-        // Degradado profesional con más contraste
         const grad = ctx.createLinearGradient(0, cardY, 0, cardY + cardH);
         grad.addColorStop(0, THEME.bgStart);
         grad.addColorStop(1, THEME.bgEnd);
@@ -98,7 +97,7 @@ class EnhancedMusicCard {
 
         ctx.save();
         ctx.beginPath();
-        ctx.roundRect(x, y, size, size, 8); // Bordes redondeados sutiles
+        ctx.roundRect(x, y, size, size, 8); 
         ctx.clip();
         
         ctx.fillStyle = "#1e1e1e";
@@ -106,7 +105,6 @@ class EnhancedMusicCard {
 
         if (buffer) {
             const img = await loadImage(buffer);
-            // Lógica "Cover" para no estirar la imagen
             const scale = Math.max(size / img.width, size / img.height);
             const w = img.width * scale;
             const h = img.height * scale;
@@ -128,45 +126,47 @@ class EnhancedMusicCard {
 
         ctx.fillStyle = THEME.textMain;
         ctx.font = "700 32px system-ui, sans-serif";
-        ctx.fillText(this.truncateText(ctx, config.songTitle, maxTextW), textX, card.y + 75);
+        ctx.fillText(this.truncateText(ctx, config.songTitle, maxTextW), textX, card.y + 55);
 
         ctx.fillStyle = THEME.textSecondary;
         ctx.font = "500 24px system-ui, sans-serif";
-        ctx.fillText(this.truncateText(ctx, config.songArtist, maxTextW), textX, card.y + 115);
+        ctx.fillText(this.truncateText(ctx, config.songArtist, maxTextW), textX, card.y + 90);
         
         ctx.shadowBlur = 0;
 
-        // Marca de agua más pequeña y bien posicionada
         const wmBuffer = await fetchImageBuffer("https://i.imgur.com/oi2SwIH.png");
         if (wmBuffer) {
             try {
                 const wmImg = await loadImage(wmBuffer);
-                const wmWidth = 110; // Tamaño reducido
-                const wmHeight = 42;
-                const wmX = (card.x + card.w) - wmWidth - 25; 
-                const wmY = card.y + 130; 
-                ctx.globalAlpha = 0.8; // Ligera transparencia para elegancia
+                const wmWidth = 100;
+                const wmHeight = 35;
+                const wmX = (card.x + card.w) - wmWidth - 20; 
+                const wmY = (card.y + card.h) - wmHeight - 35; 
+                ctx.globalAlpha = 0.6;
                 ctx.drawImage(wmImg, wmX, wmY, wmWidth, wmHeight);
                 ctx.globalAlpha = 1.0;
             } catch (e) {}
         }
 
+        const progressY = card.y + card.h - 35; 
         const progress = clamp(config.currentPositionMs / config.totalDurationMs, 0, 1);
+        
         ctx.fillStyle = THEME.rail;
         ctx.beginPath();
-        ctx.roundRect(textX, card.y + 220, maxTextW, 4, 2);
+        ctx.roundRect(textX, progressY, maxTextW, 4, 2);
         ctx.fill();
+        
         ctx.fillStyle = THEME.accent;
         ctx.beginPath();
-        ctx.roundRect(textX, card.y + 220, maxTextW * progress, 4, 2);
+        ctx.roundRect(textX, progressY, maxTextW * progress, 4, 2);
         ctx.fill();
 
         ctx.fillStyle = THEME.textSecondary;
         ctx.font = "400 14px system-ui, sans-serif";
         ctx.textAlign = "left";
-        ctx.fillText(formatDuration(config.currentPositionMs), textX, card.y + 250);
+        ctx.fillText(formatDuration(config.currentPositionMs), textX, progressY + 20);
         ctx.textAlign = "right";
-        ctx.fillText(formatDuration(config.totalDurationMs), textX + maxTextW, card.y + 250);
+        ctx.fillText(formatDuration(config.totalDurationMs), textX + maxTextW, progressY + 20);
         ctx.textAlign = "left"; 
     }
 
