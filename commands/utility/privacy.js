@@ -3,8 +3,8 @@ const { safeDeferReply, handleCommandError } = require('../../utils/responseHand
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('')
-    .setDescription(''),
+    .setName('privacy')
+    .setDescription('show privacy bot'),
 
   run: async (client, interaction) => {
     try {
