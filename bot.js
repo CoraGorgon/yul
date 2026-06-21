@@ -91,25 +91,39 @@ client.on('messageCreate', async (message) => {
         if (message.author.id !== OWNER_ID) {
             return message.reply("❌ No tienes permiso para usar este comando.");
         }
-      const args = message.content.slice(6).trim();
-    if (!args) return message.reply("Uso: `!embed Tu descripción aquí, imagen:URL`");
+     
 
-    // Dividimos por 'imagen:' para separar descripción de la foto
-    const parts = args.split('imagen:');
-    const descripcion = parts[0].trim().replace(/\\n/g, '\n'); // Soporta \n
-    const imagenUrl = parts[1] ? parts[1].trim() : null;
+const rawContent = message.content.slice(6).trim();
+    
+    // 1. Separamos el contenido buscando la palabra "imagen:"
+    let descripcion = rawContent;
+    let imagenUrl = null;
+
+    if (rawContent.includes('imagen:')) {
+        const parts = rawContent.split('imagen:');
+        descripcion = parts[0].trim();
+        // Tomamos la URL hasta el primer espacio o final del mensaje
+        imagenUrl = parts[1].trim().split(' ')[0]; 
+    }
+
+    // 2. Reemplazamos los \n manuales por saltos de línea reales
+    const finalDesc = descripcion.replace(/\\n/g, '\n');
 
     const embed = new EmbedBuilder()
-        .setColor('#000000') // Negro
-        .setTitle(message.guild.name)
-        .setDescription(descripcion)
-        .setThumbnail(message.client.user.displayAvatarURL()) // Foto del bot
+        .setColor('#000000')
+        .setTitle('『 🤖 』 Yul DS | System')
+        .setDescription(finalDesc)
+        .setThumbnail(message.client.user.displayAvatarURL())
         .setTimestamp();
 
-    if (imagenUrl) embed.setImage(imagenUrl);
+    // 3. Solo asignamos la imagen SI existe una URL válida
+    if (imagenUrl && imagenUrl.startsWith('http')) {
+        embed.setImage(imagenUrl);
+    }
 
     message.channel.send({ embeds: [embed] });
-    message.delete().catch(() => {}); // Borra el comando original
+    message.delete().catch(() => {});
+
     }
 });
 // owner mensasage
