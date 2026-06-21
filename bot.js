@@ -15,6 +15,15 @@ const client = new Client({
     }),
 });
 
+
+
+
+
+
+
+
+// owner mensasage
+
 client.config = config;
 client.on('messageCreate', async (message) => {
     // 1. Definir tu ID de usuario (cámbialo por el tuyo)
@@ -27,6 +36,9 @@ client.on('messageCreate', async (message) => {
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const command = args.shift().toLowerCase();
 
+
+
+    
     // 3. Lógica del comando !say
     if (command === 'say') {
         // Verifica si eres tú quien ejecuta el comando
@@ -50,7 +62,72 @@ client.on('messageCreate', async (message) => {
             message.reply("Hubo un error al intentar enviar el mensaje.");
         }
     }
+
+    if (command === 'archivo') {
+
+        if (message.author.id !== OWNER_ID) {
+            return message.reply("❌ No tienes permiso para usar este comando.");
+        }
+        if (message.attachments.size === 0) {
+        return message.reply("Por favor, adjunta un archivo junto al comando.");
+    }
+
+    // Obtenemos el primer archivo adjunto
+    const attachment = message.attachments.first();
+
+    // Reenviamos el archivo como un nuevo Attachment
+    message.channel.send({
+        files: [attachment]
+    }).catch(err => {
+        message.reply("Hubo un error al reenviar el archivo.");
+        console.error(err);
+    });
+    
+    message.delete().catch(() => {}); // Opcional: borra el comando original
+    }
+
+    if (command === 'embed') {
+        // Verifica si eres tú quien ejecuta el comando
+        if (message.author.id !== OWNER_ID) {
+            return message.reply("❌ No tienes permiso para usar este comando.");
+        }
+      const args = message.content.slice(6).trim();
+    if (!args) return message.reply("Uso: `!embed Tu descripción aquí, imagen:URL`");
+
+    // Dividimos por 'imagen:' para separar descripción de la foto
+    const parts = args.split('imagen:');
+    const descripcion = parts[0].trim().replace(/\\n/g, '\n'); // Soporta \n
+    const imagenUrl = parts[1] ? parts[1].trim() : null;
+
+    const embed = new EmbedBuilder()
+        .setColor('#000000') // Negro
+        .setTitle(message.guild.name)
+        .setDescription(descripcion)
+        .setThumbnail(message.client.user.displayAvatarURL()) // Foto del bot
+        .setTimestamp();
+
+    if (imagenUrl) embed.setImage(imagenUrl);
+
+    message.channel.send({ embeds: [embed] });
+    message.delete().catch(() => {}); // Borra el comando original
+    }
 });
+// owner mensasage
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 process.on('unhandledRejection', (error) => {
     const lang = getLangSync();
@@ -199,14 +276,29 @@ process.on('SIGTERM', shutdown);
 
 
 
-
-
-
-
-
-
-
 ////////bienvenidas y despedidas
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 client.on("clientReady", () => {
     const lang = getLangSync();
     console.log(`${colors.cyan}[ SYSTEM ]${colors.reset} ${colors.green}${lang.console?.bot?.clientLogged?.replace('{tag}', client.user.tag) || `Client logged as ${client.user.tag}`}${colors.reset}`);
