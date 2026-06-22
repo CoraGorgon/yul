@@ -1,4 +1,5 @@
-const { Client, GatewayIntentBits, EmbedBuilder, Events } = require("discord.js");
+const { Client, GatewayIntentBits, ButtonStyle, ButtonBuilder, EmbedBuilder, Events, ActionRowBuilder } = require("discord.js");
+
 const config = require("./config.js");
 const fs = require("fs");
 const path = require('path');
@@ -16,9 +17,57 @@ const client = new Client({
 });
 
 
+///////
 
 
 
+// Asegúrate de tener este evento en tu archivo principal o en tu manejador de eventos
+client.on('messageCreate', async (message) => {
+    // Ignorar mensajes de otros bots o si el mensaje es en un canal privado (opcional)
+    if (message.author.bot || !message.guild) return;
+
+    // Verificar si el bot fue mencionado directamente
+    const mentionRegex = new RegExp(`^<@!?${client.user.id}>$`);
+    const mentionWithTextRegex = new RegExp(`^<@!?${client.user.id}>`);
+
+    if (mentionRegex.test(message.content) || (message.content.startsWith(`<@${client.user.id}>`) || message.content.startsWith(`<@!${client.user.id}>`))) {
+        
+        // Crear un diseño elegante con un Embed
+        const embed = new EmbedBuilder()
+            .setColor('#000000') // Color negro minimalista a juego con tu web
+            .setTitle(`👋 hi! i'm ${client.user.displayName}`)
+            .setDescription(`Hi ${message.author}, use \`/help\` to view all commands <a:SleepyKitty:1518723956968788121>`)
+            .setFooter({ text: 'Yul Ecosystem', iconURL: message.guild.iconURL() })
+            .setTimestamp();
+
+        // Configurar los botones que me proporcionaste
+        const row = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setLabel("Invite")
+              .setStyle(ButtonStyle.Link)
+              .setURL(`https://discord.com/oauth2/authorize?client_id=${client.user.id}&permissions=281474980153408&integration_type=0&scope=bot`)
+              .setEmoji("<:Shooting_Stars:935305026048495638>"),
+            new ButtonBuilder()
+              .setLabel("Support Server")
+              .setStyle(ButtonStyle.Link)
+              .setURL(`https://discord.gg/Ze5TEDCD`)
+              .setEmoji("<:Kawaii_Moon_and_Stars:935305070852050965>")
+        );
+
+        // Enviar la respuesta al canal
+        try {
+            await message.reply({ embeds: [embed], components: [row] });
+        } catch (error) {
+            console.error('Error al enviar el mensaje de mención:', error);
+        }
+    }
+});
+
+
+
+
+
+//mention message
 
 
 
