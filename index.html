@@ -3,33 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yul Bot | La música de tu servidor</title>
+    <title>Ecosistema Yul | Mejora tu servidor de Discord</title>
     <style>
         :root { 
             --bg: #000000; 
             --surface: #111111; 
+            --surface-light: #1a1a1a;
             --text: #ffffff; 
             --text-muted: #888888;
             --accent: #ffffff; 
         }
-        body { font-family: 'Inter', -apple-system, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; line-height: 1.6; }
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text); 
+            margin: 0; 
+            padding: 0; 
+            line-height: 1.6; 
+            scroll-behavior: smooth; 
+        }
         
-        nav { padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        .nav-links a { color: var(--text); text-decoration: none; margin-left: 25px; font-size: 0.9rem; letter-spacing: 1px; }
+        nav { 
+            padding: 20px 50px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #333; 
+            position: sticky; 
+            top: 0; 
+            background-color: var(--bg); 
+            z-index: 1000;
+        }
+        .nav-brand { font-weight: bold; letter-spacing: 2px; }
+        .nav-links a { color: var(--text); text-decoration: none; margin-left: 25px; font-size: 0.9rem; letter-spacing: 1px; transition: color 0.3s; }
+        .nav-links a:hover { color: var(--text-muted); }
         
-        header { padding: 120px 20px; text-align: center; }
-        h1 { font-size: 6rem; font-weight: 800; margin: 0; letter-spacing: -4px; }
-        .subtitle { font-size: 1.2rem; color: var(--text-muted); margin-top: 10px; }
+        header { padding: 100px 20px 40px; text-align: center; }
+        h1 { font-size: 5rem; font-weight: 800; margin: 0; letter-spacing: -3px; }
+        .subtitle { font-size: 1.2rem; color: var(--text-muted); margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
         
-        .container { max-width: 900px; margin: auto; padding: 60px 20px; }
+        .container { max-width: 1000px; margin: auto; padding: 40px 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin-top: 40px; }
-        .card { padding: 30px; border: 1px solid #333; border-radius: 0; transition: 0.3s; }
+        .card { padding: 30px; border: 1px solid #333; background-color: var(--surface); transition: 0.3s; position: relative; }
         .card:hover { border-color: white; }
 
-        .btn { padding: 12px 25px; border: 1px solid white; color: white; text-decoration: none; font-weight: bold; display: inline-block; margin: 10px; transition: 0.3s; font-size: 0.9rem; }
+        .btn { padding: 12px 25px; border: 1px solid white; color: white; text-decoration: none; font-weight: bold; display: inline-block; margin: 10px; transition: 0.3s; font-size: 0.9rem; cursor: pointer; }
         .btn-white { background: white; color: black; }
         .btn:hover { background: white; color: black; }
         .btn-white:hover { background: transparent; color: white; }
+
+        .badge { background: #333; color: #fff; padding: 4px 10px; font-size: 0.7rem; font-weight: bold; letter-spacing: 1px; position: absolute; top: 20px; right: 20px; border-radius: 4px; }
+
+        .divider { border: 0; border-top: 1px solid #333; margin: 60px auto; max-width: 1000px; }
 
         footer { padding: 60px; text-align: center; border-top: 1px solid #333; color: var(--text-muted); font-size: 0.8rem; }
     </style>
@@ -37,55 +62,135 @@
 <body>
 
 <nav>
-    <div style="font-weight: bold; letter-spacing: 2px;">YUL</div>
+    <div class="nav-brand">ECOSISTEMA YUL</div>
     <div class="nav-links">
-        <a href="#features">CARACTERÍSTICAS</a>
-        <a href="#support">SOPORTE</a>
+        <a href="#yul">YUL</a>
+        <a href="#yul-tts">YUL TTS</a>
+        <a href="#futuros">PROYECTOS</a>
+        <a href="#donate">APOYAR</a>
     </div>
 </nav>
 
-<header>
-    <h1>YUL</h1>
-    <p class="subtitle">El estándar en calidad musical para Discord.</p>
-    <div style="margin-top: 30px;">
-        <a href="https://discord.com/oauth2/authorize?client_id=1517975340549410816&permissions=281474980153408&integration_type=0&scope=bot" class="btn btn-white">INVITAR BOT</a>
-        <a href="https://discord.gg/Ze5TEDCD" class="btn">SERVIDOR SOPORTE</a>
-    </div>
-</header>
+<!-- SECCIÓN YUL -->
+<section id="yul">
+    <header>
+        <h1>YUL</h1>
+        <p class="subtitle">El estándar en calidad musical para Discord.</p>
+        <div style="margin-top: 30px;">
+            <a href="https://discord.com/oauth2/authorize?client_id=1517975340549410816&permissions=281474980153408&integration_type=0&scope=bot" class="btn btn-white">INVITAR YUL</a>
+            <a href="https://discord.gg/Ze5TEDCD" class="btn">SERVIDOR SOPORTE</a>
+        </div>
+    </header>
 
-<div class="container">
-    <div style="display: flex; justify-content: center; gap: 50px; margin-bottom: 80px;">
-        <div style="text-align: center;"><h3><span id="guild-count">--</span></h3><p style="color:var(--text-muted)">SERVIDORES</p></div>
-        <div style="text-align: center;"><h3><span id="user-count">--</span></h3><p style="color:var(--text-muted)">USUARIOS</p></div>
-    </div>
+    <div class="container">
+        <div style="display: flex; justify-content: center; gap: 50px; margin-bottom: 60px;">
+            <div style="text-align: center;"><h3><span id="guild-count">--</span></h3><p style="color:var(--text-muted)">SERVIDORES</p></div>
+            <div style="text-align: center;"><h3><span id="user-count">--</span></h3><p style="color:var(--text-muted)">USUARIOS</p></div>
+        </div>
 
-    <h2 id="features" style="font-weight: 300;">FUNCIONALIDADES</h2>
+        <h2 style="font-weight: 300; text-align: center;">FUNCIONALIDADES YUL</h2>
+        <div class="grid">
+            <div class="card"><h3>MULTI-PLATAFORMA</h3><p>Reproducción de alta calidad desde plataformas como YouTube y Spotify.</p></div>
+            <div class="card"><h3>PANEL DINÁMICO</h3><p>Control total con una interfaz de mensajes actualizada al instante.</p></div>
+            <div class="card"><h3>AUTO-QUEUE</h3><p>Inteligencia artificial que detecta tus gustos para mantener la música sonando.</p></div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECCIÓN YUL TTS -->
+<section id="yul-tts">
+    <header style="padding-top: 40px;">
+        <h1>YUL TTS</h1>
+        <p class="subtitle">Haz que todos sean escuchados. La voz ideal para quienes no usan micrófono en el chat de voz.</p>
+        <div style="margin-top: 30px;">
+            <a href="https://discord.com/oauth2/authorize?client_id=1518400986606075904&permissions=4298119168&integration_type=0&scope=bot" class="btn btn-white">INVITAR YUL TTS</a>
+        </div>
+    </header>
+
+    <div class="container">
+        <h2 style="font-weight: 300; text-align: center;">FUNCIONALIDADES TTS</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>VOCES NEURALES</h3>
+                <p>Múltiples idiomas y acentos impulsados por inteligencia artificial de alta calidad y realismo.</p>
+            </div>
+            <div class="card">
+                <h3>SISTEMA DE CACHÉ</h3>
+                <p>Generación ultrarrápida. Los audios se guardan temporalmente para evitar demoras y cargas innecesarias.</p>
+            </div>
+            <div class="card">
+                <h3>ANTI-SPAM INTELIGENTE</h3>
+                <p>Control de cooldowns por servidor y usuario para mantener tu chat de voz limpio y ordenado.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<hr class="divider">
+
+<!-- SECCIÓN FUTUROS PROYECTOS -->
+<section id="futuros" class="container" style="padding-top: 40px;">
+    <h2 style="font-weight: 800; font-size: 2.5rem; text-align: center; margin-bottom: 10px;">FUTUROS PROYECTOS</h2>
+    <p class="subtitle" style="text-align: center; margin-bottom: 50px;">El ecosistema está en constante evolución. Esto es lo que viene.</p>
+    
     <div class="grid">
-        <div class="card"><h3>MULTI-PLATAFORMA</h3><p>YouTube, Spotify</p></div>
-        <div class="card"><h3>PANEL DINÁMICO</h3><p>Control total con interfaz actualizada al instante.</p></div>
-        <div class="card"><h3>AUTO-QUEUE</h3><p>Inteligencia artificial para mantener la música sonando.</p></div>
-    </div>
+        <!-- Yul Economy -->
+        <div class="card" style="background-color: var(--surface-light); border-color: #444;">
+            <span class="badge">PRÓXIMAMENTE</span>
+            <h3 style="margin-top: 20px;">YUL ECONOMY</h3>
+            <p style="color: var(--text-muted);">Revolucionando la economía en Discord. No solo dinero virtual: invierte en <strong>propiedades</strong>, gestiona negocios y cría o colecciona <strong>mascotas</strong> con sistemas dinámicos que cambian las reglas del juego.</p>
+        </div>
+        
+        <!-- Yul Admin -->
+        <div class="card" style="background-color: var(--surface-light); border-color: #444;">
+            <span class="badge">PRÓXIMAMENTE</span>
+            <h3 style="margin-top: 20px;">YUL ADMIN</h3>
+            <p style="color: var(--text-muted);">El control absoluto de tu servidor. Auditoría avanzada, filtros de seguridad automáticos y moderación eficiente en una sola herramienta de fácil configuración para proteger a tu comunidad.</p>
+        </div>
 
-    <div style="margin-top: 100px; text-align: center; border: 1px solid #333; padding: 40px;">
+        <!-- Yul Autoroles -->
+        <div class="card" style="background-color: var(--surface-light); border-color: #444;">
+            <span class="badge">PRÓXIMAMENTE</span>
+            <h3 style="margin-top: 20px;">YUL AUTOROLES</h3>
+            <p style="color: var(--text-muted);"><strong>Organización y utilidad.</strong> Genera imágenes personalizadas de bienvenida, configura paneles para elegir preferencias con un clic y actualiza contadores automáticos (ej. "👥 Miembros: 1,050"). Automatiza la entrada dando una impresión profesional.</p>
+        </div>
+
+        <!-- Yul Neko -->
+        <div class="card" style="background-color: var(--surface-light); border-color: #444;">
+            <span class="badge">PRÓXIMAMENTE</span>
+            <h3 style="margin-top: 20px;">YUL NEKO</h3>
+            <p style="color: var(--text-muted);"><strong>Entretenimiento puro.</strong> Comandos para interactuar (abrazar, golpear, chocar los cinco), sistemas de matrimonios virtuales y generación de memes. Fomenta la interacción, rompe el hielo y mantiene tu chat general siempre activo.</p>
+        </div>
+    </div>
+</section>
+
+<!-- SECCIÓN APOYO -->
+<section id="donate" class="container">
+    <div style="margin-top: 60px; text-align: center; border: 1px solid #333; padding: 50px; background-color: var(--surface);">
         <h3>APOYA EL PROYECTO</h3>
-        <p style="color: var(--text-muted);">Las donaciones permiten mantener el hosting activo 24/7.</p>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">Las donaciones permiten mantener el hosting activo 24/7 y financiar el desarrollo de nuevos bots.</p>
         <form action="https://www.paypal.com/donate" method="post" target="_top">
             <input type="hidden" name="business" value="sayukllups@gmail.com" />
             <button type="submit" class="btn">DONAR VÍA PAYPAL</button>
         </form>
     </div>
-</div>
+</section>
 
 <footer>
-    <p>&copy;YUL BOT</p>
-    <p>SOFTWARE BAJO LICENCIA MIT | COPYRIGHT (C) 2026 GLACEYT</p>
+    <p>&copy; 2026 ECOSISTEMA YUL</p>
+    <p>SOFTWARE BAJO LICENCIA MIT | COPYRIGHT (C) GLACEYT</p>
 </footer>
 
 <script>
-    fetch('/api/stats').then(res => res.json()).then(data => {
-        document.getElementById('guild-count').innerText = data.guilds;
-        document.getElementById('user-count').innerText = data.users;
-    });
+    fetch('/api/stats')
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById('guild-count').innerText = data.guilds || '--';
+            document.getElementById('user-count').innerText = data.users || '--';
+        })
+        .catch(error => console.error('Error al cargar estadísticas:', error));
 </script>
 </body>
 </html>
