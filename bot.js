@@ -50,7 +50,7 @@ client.on('messageCreate', async (message) => {
             new ButtonBuilder()
               .setLabel("Support Server")
               .setStyle(ButtonStyle.Link)
-              .setURL(`https://discord.gg/Ze5TEDCD`)
+              .setURL(`https://discord.gg/j48GBxpXxE`)
               .setEmoji("<:Kawaii_Moon_and_Stars:935305070852050965>")
         );
 
