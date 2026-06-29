@@ -19,7 +19,7 @@ const row = new ActionRowBuilder()
                 new ButtonBuilder()
                     .setLabel("Support Server")
                     .setStyle(ButtonStyle.Link)
-                    .setURL(`https://discord.gg/mEVYwC62d8`)
+                    .setURL(`https://discord.gg/j48GBxpXxE`)
                     .setEmoji("<:Kawaii_Moon_and_Stars:935305070852050965>")
             );
 
