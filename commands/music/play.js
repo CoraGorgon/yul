@@ -287,21 +287,8 @@ module.exports = {
                 throw new Error('Voice connection was not established. The bot did not join the voice channel.');
             }
 
-            const queueLengthBeforePlay = player.queue?.length || 0;
-            console.log(`[ PLAY DEBUG ] Guild ${interaction.guildId} | queue=${queueLengthBeforePlay} | playing=${player.playing} | paused=${player.paused}`);
-
-            if (queueLengthBeforePlay === 0 && !player.playing && !player.current) {
-                return sendErrorResponse(
-                    interaction,
-                    '## ❌ No se pudo reproducir' +
-                    'La búsqueda sí respondió, pero no se agregó ninguna pista válida a la cola.' +
-                    'Prueba con otro nombre/link o revisa el plugin de YouTube de Lavalink.',
-                    7000
-                );
-            }
-
             if (!player.playing && !player.paused) {
-                await player.play();
+                player.play();
             }
 
             const successTitle = isPlaylist ? t.success.titlePlaylist : t.success.titleTrack;

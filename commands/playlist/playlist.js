@@ -907,21 +907,8 @@ async function playPlaylistById(client, interaction, playlistId, lang) {
     throw new Error('Voice connection could not be established.');
   }
 
-  const queueLengthBeforePlay = player.queue?.length || 0;
-  console.log(`[ PLAYLIST DEBUG ] Guild ${interaction.guildId} | queue=${queueLengthBeforePlay} | playing=${player.playing} | paused=${player.paused}`);
-
-  if (queueLengthBeforePlay === 0 && !player.playing && !player.current) {
-    return sendErrorResponse(
-      interaction,
-      `${playlistText.playbackErrorTitle}
-
-No se agregó ninguna pista válida a la cola. Prueba con otra playlist o revisa el plugin de YouTube de Lavalink.`,
-      7000
-    );
-  }
-
   if (!player.playing && !player.paused) {
-    await player.play();
+    player.play();
   }
 
   const successCard = buildPaleCard(

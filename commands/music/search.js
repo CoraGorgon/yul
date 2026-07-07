@@ -264,18 +264,7 @@ module.exports = {
                     connectionAttempts++;
                 }
 
-                const queueLengthBeforePlay = player.queue?.length || 0;
-                console.log(`[ SEARCH DEBUG ] Guild ${interaction.guildId} | queue=${queueLengthBeforePlay} | playing=${player.playing} | paused=${player.paused}`);
-
-                if (queueLengthBeforePlay === 0 && !player.playing && !player.current) {
-                    await i.followUp({
-                        content: '❌ La canción se seleccionó, pero no se agregó ninguna pista válida a la cola.',
-                        flags: MessageFlags.Ephemeral
-                    }).catch(() => {});
-                    return;
-                }
-
-                if (!player.playing && !player.paused) await player.play();
+                if (!player.playing && !player.paused) player.play();
 
                 collector.stop();
                 setTimeout(() => {
