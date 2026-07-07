@@ -24,11 +24,11 @@ module.exports = {
   lowMemoryMode: true,   // Performance optimizations for low-memory environments (512MB RAM)
   errorLog: "", 
  nodes: [
-  {
-  name: "GlaceYT-2",
+ {
+  name: "GlaceYT",
   password: "glace",
   host: "de-01.strixnodes.com",
-  port: 2028,
+  port: 2010,
   secure: false
 }
 ]
